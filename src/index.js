@@ -2,9 +2,9 @@ const http =require('http')
 
 
 const wait = (time) =>
-new Promise(resolve =>
-  setTimeout(resolve, time)
-  )
+  new Promise(resolve =>
+    setTimeout(resolve, time)
+    )
 
 const todosDatabase = (() => {
     let idSequence = 1
@@ -37,6 +37,7 @@ const todosDatabase = (() => {
   const del = async (id) => {
     await wait(500)
     delete todos[id]
+    return todos
   }
 
   return {
@@ -74,7 +75,7 @@ const server =http.createServer((request,response)=>{
   }
   //************* */
   //** API TODOS** */
-  //DELETE /todos/:id = Deletar
+
   //PUT /todos/:id = Atualiar
 
     //POST /todos = criar
@@ -110,6 +111,16 @@ const server =http.createServer((request,response)=>{
     .list()
     .then(todos=>{
       response.writeHead(200,jsonHeader)
+      response.end(JSON.stringify(todos))
+    })
+    return
+  }
+    //DELETE /todos/:id = Deletar
+  if(request.method==="DELETE"&&/^\/todos\/\w+$/.test(request.url)){
+    const[,todos,id]=request.url.split('/')
+
+    todosDatabase.del(id).then((todos)=>{
+      response.writeHead(201,jsonHeader)
       response.end(JSON.stringify(todos))
     })
     return
