@@ -76,9 +76,9 @@ const server =http.createServer((request,response)=>{
   //************* */
   //** API TODOS** */
 
-  //PUT /todos/:id = Atualiar
 
-    //POST /todos = criar
+
+     //POST /todos = criar
   if(request.method==='POST'&&request.url.startsWith('/todos')){
     let bodyRaw =''
 
@@ -95,13 +95,41 @@ const server =http.createServer((request,response)=>{
     })
     return
   }
+
+  //PUT /todos/:id = Atualiar
+  if(request.method==="PUT"&& /^\/todos\/\d+$/.test(request.url)){
+    let bodyRaw=''
+
+    const[,todos,idRaw]=request.url.split('/')
+    const id = parseInt(idRaw)
+
+    request.on('data',data=>bodyRaw+=data)
+
+    request.once('end', ()=>{
+      const todo = {...JSON.parse(bodyRaw),id}
+
+      todosDatabase.update(todo).then((update)=>{
+        response.writeHead(200, jsonHeader)
+        response.end(JSON.stringify(update))
+      })
+    })
+    return
+  }
+
     //GET /todos/:id = buscar
-  if(request.method==='GET'&&/^\/todos\/\w+$/.test(request.url)){
-    const[,todos,id]=request.url.split('/')
+  if(request.method==='GET'&&/^\/todos\/\d+$/.test(request.url)){
+    const[,todos,idRaw]=request.url.split('/')
+    const id = parseInt(idRaw)
 
     todosDatabase.get(id).then(listId=>{
-      response.writeHead(200,jsonHeader)
-      response.end(JSON.stringify(listId))
+      if(!listId){
+        response.writeHead(404,jsonHeader)
+        response.end({message:"Resource not found"})
+      } else{
+        response.writeHead(200,jsonHeader)
+        response.end(JSON.stringify(listId))
+      }
+
     })
     return
   }
@@ -120,7 +148,7 @@ const server =http.createServer((request,response)=>{
     const[,todos,id]=request.url.split('/')
 
     todosDatabase.del(id).then((todos)=>{
-      response.writeHead(201,jsonHeader)
+      response.writeHead(204,jsonHeader)
       response.end(JSON.stringify(todos))
     })
     return
