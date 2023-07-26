@@ -9,14 +9,18 @@ const errorHandler = require('./middlewares/error')
 
 const app = express()
 
-app.use(express.json())
-app.use(logger())
+const router = express.Router()
 
-app.use('/hello', hello)
-app.use('/todos', todos)
-app.use('/users', users)
+router.use(express.json())
+router.use(logger())
 
-app.use(errorHandler())
+router.use('/hello', hello)
+router.use('/todos', todos)
+router.use('/users', users)
+
+router.use(errorHandler())
+
+app.use('/api', router)
 
 app
   .listen('3000', '0.0.0.0', () => {
